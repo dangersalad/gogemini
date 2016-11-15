@@ -279,6 +279,5 @@ func NewGeminiAPI(baseurl, apikey, apisecret string, logger *log.Logger) *Gemini
 		logger:    logger,
 	}
 
-	logger.Println("Initialized Gemini API")
 	return ga
 }
