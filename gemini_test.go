@@ -1,18 +1,18 @@
 package gemini
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 const (
-	url = "https://api.sandbox.gemini.com/"
-	apikey = "<api key goes here>"
+	url       = "https://api.sandbox.gemini.com/"
+	apikey    = "<api key goes here>"
 	apisecret = "<api secret goes here>"
 )
 
 func TestTicker(t *testing.T) {
-	ga := NewGeminiAPI(url, "", "")
+	ga := NewGeminiAPI(url, "", "", nil)
 	ticker, err := ga.GetTicker("BTCUSD")
 	if err != nil {
 		t.Fail()
@@ -21,7 +21,7 @@ func TestTicker(t *testing.T) {
 }
 
 func TestFunds(t *testing.T) {
-	ga := NewGeminiAPI(url, apikey, apisecret)
+	ga := NewGeminiAPI(url, apikey, apisecret, nil)
 	funds, err := ga.GetFunds()
 	if err != nil {
 		t.Fail()
@@ -30,7 +30,7 @@ func TestFunds(t *testing.T) {
 }
 
 func TestOrderStatus(t *testing.T) {
-	ga := NewGeminiAPI(url, apikey, apisecret)
+	ga := NewGeminiAPI(url, apikey, apisecret, nil)
 	orders, err := ga.GetOrderStatus()
 	if err != nil {
 		t.Fail()
@@ -39,7 +39,7 @@ func TestOrderStatus(t *testing.T) {
 }
 
 func TestPlaceLimitOrder(t *testing.T) {
-	ga := NewGeminiAPI(url, apikey, apisecret)
+	ga := NewGeminiAPI(url, apikey, apisecret, nil)
 	order, err := ga.PlaceLimitOrder("buy", "btcusd", "order1", 1.0, 1.0)
 	if err != nil {
 		t.Fail()
@@ -53,7 +53,6 @@ func TestPlaceLimitOrder(t *testing.T) {
 }
 
 func TestCancelAll(t *testing.T) {
-	ga := NewGeminiAPI(url, apikey, apisecret)
+	ga := NewGeminiAPI(url, apikey, apisecret, nil)
 	ga.CancelAll()
 }
-
