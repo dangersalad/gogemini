@@ -13,43 +13,47 @@ const (
 
 func TestTicker(t *testing.T) {
 	ga := NewGeminiAPI(url, "", "", nil)
-	ticker, err := ga.GetTicker("BTCUSD")
+	_, err := ga.GetTicker("btcusd")
 	if err != nil {
 		t.Fail()
 	}
-	fmt.Println(ticker)
+}
+
+func TestOrderbook(t *testing.T) {
+	ga := NewGeminiAPI(url, "", "", nil)
+	_, err := ga.GetOrderbook("btcusd")
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
 }
 
 func TestFunds(t *testing.T) {
 	ga := NewGeminiAPI(url, apikey, apisecret, nil)
-	funds, err := ga.GetFunds()
+	_, err := ga.GetFunds()
 	if err != nil {
 		t.Fail()
 	}
-	fmt.Println(funds)
 }
 
 func TestOrderStatus(t *testing.T) {
 	ga := NewGeminiAPI(url, apikey, apisecret, nil)
-	orders, err := ga.GetOrderStatus()
+	_, err := ga.GetOrderStatus()
 	if err != nil {
 		t.Fail()
 	}
-	fmt.Println(orders)
 }
 
 func TestPlaceLimitOrder(t *testing.T) {
 	ga := NewGeminiAPI(url, apikey, apisecret, nil)
-	order, err := ga.PlaceLimitOrder("buy", "btcusd", "order1", 1.0, 1.0)
+	_, err := ga.PlaceLimitOrder("buy", "btcusd", "order1", 1.0, 1.0)
 	if err != nil {
 		t.Fail()
 	}
-	fmt.Println(order)
-	order, err = ga.PlaceLimitOrder("sell", "btcusd", "order1", 1.0, 1.0)
+	_, err = ga.PlaceLimitOrder("sell", "btcusd", "order1", 1.0, 1.0)
 	if err != nil {
 		t.Fail()
 	}
-	fmt.Println(order)
 }
 
 func TestCancelAll(t *testing.T) {

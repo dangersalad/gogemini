@@ -56,6 +56,18 @@ type Order struct {
 	OrigAmount      float64 `json:"original_amount,string"`
 }
 
+// OderbookOrder are the sub documents on the Orderbook response
+type OrderbookOrder struct {
+	Price     float64 `json:"price,string"`
+	Amount    float64 `json:"amount,string"`
+	Timestamp int     `json:"timestamp,string"`
+}
+
+// Orderbook stores the json returned by GetOrderbook
+type Orderbook struct {
+	Bids []OrderbookOrder `json:"bids"`
+}
+
 // Request is used to set the data for making an api request
 type Request interface {
 	SetNonce(int64)
@@ -154,6 +166,29 @@ func (ga *GeminiAPI) GetTicker(pair string) (Ticker, error) {
 		return ticker, err
 	}
 	return ticker, nil
+}
+
+// GetOrderbook takes a currency symbol and returns a slice of Order structs
+func (ga *GeminiAPI) GetOrderbook(pair string) (Orderbook, error) {
+	tickerUrl := fmt.Sprintf("/v1/book/%s", pair)
+	resp, err := http.Get(fmt.Sprintf("%s%s", ga.BaseURL, tickerUrl))
+	if err != nil {
+		ga.logger.Printf("ERROR: Failed to get ticker for pair %s\n", pair)
+		return Orderbook{}, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		ga.logger.Printf("ERROR: Failed to read ticker from response\n")
+		return Orderbook{}, err
+	}
+	orders := Orderbook{}
+	err = json.Unmarshal(body, &orders)
+	if err != nil {
+		ga.logger.Printf("ERROR: Failed to decode Orderbook from response: %s\n", body)
+		return Orderbook{}, err
+	}
+	return orders, nil
 }
 
 // GetFunds returns a list of Fund structs
