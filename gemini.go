@@ -119,7 +119,8 @@ func (ga *GeminiAPI) AuthAPIReq(r Request) ([]byte, error) {
 	client := &http.Client{}
 	r.SetNonce(ga.Nonce)
 	ga.Nonce++
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", ga.BaseURL, r.GetRoute()), nil)
+	reqURL := fmt.Sprintf("%s%s", ga.BaseURL, r.GetRoute())
+	req, err := http.NewRequest("POST", reqURL, nil)
 	if err != nil {
 		ga.logger.Printf("ERROR: Failed to POST authenticated request to: %s\n", r.GetRoute())
 		return []byte{}, nil
