@@ -21,7 +21,7 @@ func TestTicker(t *testing.T) {
 
 func TestOrderbook(t *testing.T) {
 	ga := NewGeminiAPI(url, "", "", nil)
-	_, err := ga.GetOrderbook("btcusd")
+	_, err := ga.GetOrderbook("btcusd", 1, 1)
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()
