@@ -102,12 +102,13 @@ func NewBaseRequest(route string) BaseRequest {
 
 type OrderPlaceReq struct {
 	BaseRequest
-	Symbol   string `json:"symbol"`
-	Amount   string `json:"amount"`
-	Price    string `json:"price"`
-	Side     string `json:"side"`
-	Type     string `json:"type"`
-	ClientId string `json:"client_order_id"`
+	Symbol   string   `json:"symbol"`
+	Amount   string   `json:"amount"`
+	Price    string   `json:"price"`
+	Side     string   `json:"side"`
+	Type     string   `json:"type"`
+	ClientId string   `json:"client_order_id"`
+	Options  []string `json:"options"`
 }
 
 func (r *OrderPlaceReq) GetPayload() []byte {
@@ -233,25 +234,26 @@ func (ga *GeminiAPI) CancelAll() {
 	ga.AuthAPIReq(&input)
 }
 
-// PlaceLimitOrder takes a direction, ticker, client_id, amount, and price and returns an Order object
-func (ga *GeminiAPI) PlaceLimitOrder(direction, ticker, client_id string, amount, price float64) (Order, error) {
+// PlaceLimitOrder takes a direction, pair, client_id, amount, and price and returns an Order object
+func (ga *GeminiAPI) PlaceLimitOrder(side, pair, client_id string, amount, price float64, options []string) (Order, error) {
 	amountStr := fmt.Sprintf("%0.6f", amount)
 	priceStr := ""
-	if ticker == "btcusd" || ticker == "ethusd" {
+	if pair == "btcusd" || pair == "ethusd" {
 		priceStr = fmt.Sprintf("%0.2f", price)
-	} else if ticker == "ethbtc" {
+	} else if pair == "ethbtc" {
 		priceStr = fmt.Sprintf("%0.5f", price)
 	} else {
-		panic("Unsupported ticker for placing orders")
+		panic("Unsupported pair for placing orders")
 	}
 	body, err := ga.AuthAPIReq(&OrderPlaceReq{
 		BaseRequest: NewBaseRequest("/v1/order/new"),
-		Symbol:      ticker,
+		Symbol:      pair,
 		Amount:      amountStr,
 		Price:       priceStr,
-		Side:        direction,
+		Side:        side,
 		Type:        "exchange limit",
 		ClientId:    client_id,
+		Options:     options,
 	})
 	if err != nil {
 		ga.logger.Printf("ERROR: error placing order\n")

@@ -46,11 +46,11 @@ func TestOrderStatus(t *testing.T) {
 
 func TestPlaceLimitOrder(t *testing.T) {
 	ga := NewGeminiAPI(url, apikey, apisecret, nil)
-	_, err := ga.PlaceLimitOrder("buy", "btcusd", "order1", 1.0, 1.0)
+	_, err := ga.PlaceLimitOrder("buy", "btcusd", "order1", 1.0, 1.0, []string{"immediate-or-cancel"})
 	if err != nil {
 		t.Fail()
 	}
-	_, err = ga.PlaceLimitOrder("sell", "btcusd", "order1", 1.0, 1.0)
+	_, err = ga.PlaceLimitOrder("sell", "btcusd", "order1", 1.0, 1.0, []string{"immediate-or-cancel"})
 	if err != nil {
 		t.Fail()
 	}
