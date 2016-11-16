@@ -66,6 +66,7 @@ type OrderbookOrder struct {
 // Orderbook stores the json returned by GetOrderbook
 type Orderbook struct {
 	Bids []OrderbookOrder `json:"bids"`
+	Asks []OrderbookOrder `json:"asks"`
 }
 
 // Request is used to set the data for making an api request
@@ -170,8 +171,8 @@ func (ga *GeminiAPI) GetTicker(pair string) (Ticker, error) {
 }
 
 // GetOrderbook takes a currency symbol and returns a slice of Order structs
-func (ga *GeminiAPI) GetOrderbook(pair string) (Orderbook, error) {
-	tickerUrl := fmt.Sprintf("/v1/book/%s", pair)
+func (ga *GeminiAPI) GetOrderbook(pair string, bidLimit, askLimit int) (Orderbook, error) {
+	tickerUrl := fmt.Sprintf("/v1/book/%s?limit_bids=%d&limit_asks=%d", pair, bidLimit, askLimit)
 	resp, err := http.Get(fmt.Sprintf("%s%s", ga.BaseURL, tickerUrl))
 	if err != nil {
 		ga.logger.Printf("ERROR: Failed to get ticker for pair %s\n", pair)
