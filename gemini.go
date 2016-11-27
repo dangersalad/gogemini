@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -20,6 +21,21 @@ type GeminiAPI struct {
 	ApiSecret string
 	Nonce     int64
 	logger    *log.Logger
+}
+
+type GeminiError struct {
+	Result     string `json:"result"`
+	Reason     string `json:"reason"`
+	Message    string `json:"message"`
+	StatusCode int
+}
+
+func (ge *GeminiError) String() string {
+	return fmt.Sprintf("%s - %s", ge.Reason, ge.Message)
+}
+
+func (ge GeminiError) Error() string {
+	return ge.String()
 }
 
 // Ticker stores the json returned by the pubticker endpoint
@@ -127,7 +143,9 @@ func (ga *GeminiAPI) AuthAPIReq(r Request) ([]byte, error) {
 		ga.logger.Printf("ERROR: Failed to POST authenticated request to: %s\n", r.GetRoute())
 		return []byte{}, nil
 	}
-	base64Payload := base64.StdEncoding.EncodeToString(r.GetPayload())
+	payload := r.GetPayload()
+	ga.logger.Printf("Payload: %s\n", payload)
+	base64Payload := base64.StdEncoding.EncodeToString(payload)
 	h := hmac.New(sha512.New384, []byte(ga.ApiSecret))
 	h.Write([]byte(base64Payload))
 	sig := h.Sum(nil)
@@ -145,6 +163,19 @@ func (ga *GeminiAPI) AuthAPIReq(r Request) ([]byte, error) {
 		ga.logger.Printf("ERROR: failed to read response body\n")
 		return []byte{}, nil
 	}
+
+	// check for error
+	if resp.StatusCode > 399 {
+		geminiErr := &GeminiError{}
+		err = json.Unmarshal(body, geminiErr)
+		if err != nil {
+			ga.logger.Printf("ERROR: error decoding json response\n")
+			return nil, err
+		}
+		geminiErr.StatusCode = resp.StatusCode
+		return nil, geminiErr
+	}
+
 	return body, nil
 }
 
@@ -236,16 +267,16 @@ func (ga *GeminiAPI) CancelAll() {
 
 // PlaceLimitOrder takes a direction, pair, client_id, amount, and price and returns an Order object
 func (ga *GeminiAPI) PlaceLimitOrder(side, pair, client_id string, amount, price float64, options []string) (Order, error) {
-	amountStr := fmt.Sprintf("%0.6f", amount)
+	amountStr := fmt.Sprintf("%0.8f", amount)
 	priceStr := ""
 	if pair == "btcusd" || pair == "ethusd" {
 		priceStr = fmt.Sprintf("%0.2f", price)
 	} else if pair == "ethbtc" {
 		priceStr = fmt.Sprintf("%0.5f", price)
 	} else {
-		panic("Unsupported pair for placing orders")
+		return Order{}, errors.New("Unsupported pair for placing orders")
 	}
-	body, err := ga.AuthAPIReq(&OrderPlaceReq{
+	orderReq := &OrderPlaceReq{
 		BaseRequest: NewBaseRequest("/v1/order/new"),
 		Symbol:      pair,
 		Amount:      amountStr,
@@ -254,7 +285,9 @@ func (ga *GeminiAPI) PlaceLimitOrder(side, pair, client_id string, amount, price
 		Type:        "exchange limit",
 		ClientId:    client_id,
 		Options:     options,
-	})
+	}
+
+	body, err := ga.AuthAPIReq(orderReq)
 	if err != nil {
 		ga.logger.Printf("ERROR: error placing order\n")
 		return Order{}, err
