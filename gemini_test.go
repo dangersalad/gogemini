@@ -56,6 +56,15 @@ func TestPlaceLimitOrder(t *testing.T) {
 	}
 }
 
+func TestWithdraw(t *testing.T) {
+	ga := NewGeminiAPI(url, apikey, apisecret, nil)
+	_, err := ga.Withdraw("btc", "1DFCqM24Sg4mKJqXPDLmPsF2hCGZkXwVff", 0.1)
+	if err != nil {
+		fmt.Printf("\n\nwithdraw error: %s\n\n\n", err)
+		t.Fail()
+	}
+}
+
 func TestCancelAll(t *testing.T) {
 	ga := NewGeminiAPI(url, apikey, apisecret, nil)
 	ga.CancelAll()

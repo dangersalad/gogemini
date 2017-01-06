@@ -54,6 +54,17 @@ type Fund struct {
 	AvailableForWithdrawal float64 `json:"availableForWithdrawal,string"`
 }
 
+// WithdrawResponse is the response from a fund withdraw request
+type WithdrawResponse struct {
+	Destination string  `json:"destination"`
+	Amount      float64 `json:"amount,string"`
+	TXID        string  `json:"txHash"`
+}
+
+func (w *WithdrawResponse) String() string {
+	return fmt.Sprintf("Withdrew %0.8f to %s, tdix=%s", w.Amount, w.Destination, w.TXID)
+}
+
 // Order stores the json returned by placing an order or getting order status
 type Order struct {
 	OrderId         string  `json:"order_id"`
@@ -128,6 +139,17 @@ type OrderPlaceReq struct {
 }
 
 func (r *OrderPlaceReq) GetPayload() []byte {
+	data, _ := json.Marshal(r)
+	return data
+}
+
+type WithdrawReq struct {
+	BaseRequest
+	Address string `json:"address"`
+	Amount  string `json:"amount"`
+}
+
+func (r *WithdrawReq) GetPayload() []byte {
 	data, _ := json.Marshal(r)
 	return data
 }
@@ -240,6 +262,29 @@ func (ga *GeminiAPI) GetFunds() ([]Fund, error) {
 		return []Fund{}, err
 	}
 	return funds, nil
+}
+
+// Withdraw send the specified amount of funds of the specified
+// currency from your account to a specified address
+func (ga *GeminiAPI) Withdraw(currency, address string, amount float64) (*WithdrawResponse, error) {
+	amountStr := fmt.Sprintf("%0.8f", amount)
+	input := &WithdrawReq{
+		BaseRequest: NewBaseRequest(fmt.Sprintf("/v1/withdraw/%s", currency)),
+		Address:     address,
+		Amount:      amountStr,
+	}
+	body, err := ga.AuthAPIReq(input)
+	if err != nil {
+		ga.logger.Printf("ERROR: Failed to withdraw\n")
+		return nil, err
+	}
+	resp := &WithdrawResponse{}
+	err = json.Unmarshal(body, resp)
+	if err != nil {
+		ga.logger.Printf("ERROR: Failed to withdraw\n")
+		return nil, err
+	}
+	return resp, nil
 }
 
 // GetOrderStatus returns a list of Order structs
