@@ -62,7 +62,7 @@ type WithdrawResponse struct {
 }
 
 func (w *WithdrawResponse) String() string {
-	return fmt.Sprintf("Withdrew %0.8f to %s, tdix=%s", w.Amount, w.Destination, w.TXID)
+	return fmt.Sprintf("Withdrew %0.8f to %s, txid=%s", w.Amount, w.Destination, w.TXID)
 }
 
 // Order stores the json returned by placing an order or getting order status
