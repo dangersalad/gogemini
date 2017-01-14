@@ -334,7 +334,7 @@ func (ga *GeminiAPI) PlaceLimitOrder(side, pair, client_id string, amount, price
 
 	body, err := ga.AuthAPIReq(orderReq)
 	if err != nil {
-		ga.logger.Printf("ERROR: error placing order\n")
+		ga.logger.Printf("ERROR: error placing order: %s\n", err)
 		return Order{}, err
 	}
 	order := Order{}
