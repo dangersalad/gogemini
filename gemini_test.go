@@ -7,8 +7,8 @@ import (
 
 const (
 	url       = "https://api.sandbox.gemini.com/"
-	apikey    = "<api key goes here>"
-	apisecret = "<api secret goes here>"
+	apikey    = "<api key>"
+	apisecret = "<api secret>"
 )
 
 func TestTicker(t *testing.T) {
@@ -60,7 +60,14 @@ func TestWithdraw(t *testing.T) {
 	ga := NewGeminiAPI(url, apikey, apisecret, nil)
 	_, err := ga.Withdraw("btc", "1DFCqM24Sg4mKJqXPDLmPsF2hCGZkXwVff", 0.1)
 	if err != nil {
-		fmt.Printf("\n\nwithdraw error: %s\n\n\n", err)
+		t.Fail()
+	}
+}
+
+func TestBalances(t *testing.T) {
+	ga := NewGeminiAPI(url, apikey, apisecret, nil)
+	_, err := ga.GetBalance()
+	if err != nil {
 		t.Fail()
 	}
 }

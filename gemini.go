@@ -65,6 +65,13 @@ func (w *WithdrawResponse) String() string {
 	return fmt.Sprintf("Withdrew %0.8f to %s, txid=%s", w.Amount, w.Destination, w.TXID)
 }
 
+// BalanceResponse is the response from a balance inquiry
+type BalanceResponse struct {
+	Currency  string  `json:"currency"`
+	Amount    float64 `json:"amount,string"`
+	Available float64 `json:"available,string"`
+}
+
 // Order stores the json returned by placing an order or getting order status
 type Order struct {
 	OrderId         string  `json:"order_id"`
@@ -157,8 +164,7 @@ func (r *WithdrawReq) GetPayload() []byte {
 // AuthAPIReq makes a signed api request to gemini
 func (ga *GeminiAPI) AuthAPIReq(r Request) ([]byte, error) {
 	client := &http.Client{}
-	r.SetNonce(ga.Nonce)
-	ga.Nonce++
+	r.SetNonce(time.Now().UnixNano())
 	reqURL := fmt.Sprintf("%s%s", ga.BaseURL, r.GetRoute())
 	req, err := http.NewRequest("POST", reqURL, nil)
 	if err != nil {
@@ -285,6 +291,23 @@ func (ga *GeminiAPI) Withdraw(currency, address string, amount float64) (*Withdr
 		return nil, err
 	}
 	return resp, nil
+}
+
+// GetBalance gets the balance of an account
+func (ga *GeminiAPI) GetBalance() ([]BalanceResponse, error) {
+	input := NewBaseRequest("/v1/balances")
+	body, err := ga.AuthAPIReq(&input)
+	balances := []BalanceResponse{}
+	if err != nil {
+		ga.logger.Printf("ERROR: Failed to get balances\n")
+		return []BalanceResponse{}, err
+	}
+	err = json.Unmarshal(body, &balances)
+	if err != nil {
+		ga.logger.Printf("ERROR: Failed to balances json\n")
+		return []BalanceResponse{}, err
+	}
+	return balances, nil
 }
 
 // GetOrderStatus returns a list of Order structs
