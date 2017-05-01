@@ -31,7 +31,7 @@ type GeminiError struct {
 }
 
 func (ge *GeminiError) String() string {
-	return fmt.Sprintf("%s - %s", ge.Reason, ge.Message)
+	return fmt.Sprintf("[%d] %s - %s", ge.StatusCode, ge.Reason, ge.Message)
 }
 
 func (ge GeminiError) Error() string {
@@ -304,7 +304,7 @@ func (ga *GeminiAPI) GetBalance() ([]BalanceResponse, error) {
 	}
 	err = json.Unmarshal(body, &balances)
 	if err != nil {
-		ga.logger.Printf("ERROR: Failed to balances json\n")
+		ga.logger.Printf("ERROR: Failed to parse balances json: %s\n", body)
 		return []BalanceResponse{}, err
 	}
 	return balances, nil
