@@ -121,6 +121,10 @@ func (r *BaseRequest) GetPayload() []byte {
 }
 
 func (r *BaseRequest) GetRoute() string {
+	route := r.Request
+	if route[0] != '/' {
+		route = "/" + route
+	}
 	return r.Request
 }
 
@@ -166,6 +170,7 @@ func (ga *GeminiAPI) AuthAPIReq(r Request) ([]byte, error) {
 	client := &http.Client{}
 	r.SetNonce(time.Now().UnixNano())
 	reqURL := fmt.Sprintf("%s%s", ga.BaseURL, r.GetRoute())
+	ga.logger.Printf("requrl: %s\n", reqURL)
 	req, err := http.NewRequest("POST", reqURL, nil)
 	if err != nil {
 		ga.logger.Printf("ERROR: Failed to POST authenticated request to: %s\n", r.GetRoute())
@@ -258,13 +263,13 @@ func (ga *GeminiAPI) GetFunds() ([]Fund, error) {
 	input := NewBaseRequest("/v1/balances")
 	body, err := ga.AuthAPIReq(&input)
 	if err != nil {
-		ga.logger.Printf("ERROR: Failed to get Funds\n")
+		ga.logger.Printf("ERROR: Failed to get Funds: %s\n", err)
 		return []Fund{}, err
 	}
 	funds := []Fund{}
 	err = json.Unmarshal(body, &funds)
 	if err != nil {
-		ga.logger.Printf("ERROR: Failed to get Funds\n")
+		ga.logger.Printf("ERROR: Failed to get Funds: %s\n", err)
 		return []Fund{}, err
 	}
 	return funds, nil
@@ -374,6 +379,11 @@ func NewGeminiAPI(baseurl, apikey, apisecret string, logger *log.Logger) *Gemini
 
 	if logger == nil {
 		logger = log.New(os.Stderr, "gemini api: ", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+
+	baseUrlLastIndex := len(baseurl) - 1
+	if baseurl[baseUrlLastIndex] == '/' {
+		baseurl = baseurl[:baseUrlLastIndex]
 	}
 
 	ga := &GeminiAPI{
